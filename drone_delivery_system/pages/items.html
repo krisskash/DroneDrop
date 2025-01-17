@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop Items</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="/data.js"></script>
+    <link rel="stylesheet" href="../assets/styles/global.css" />
+    <script src="/js/ShopDynamic.js"></script>
+    <script src="../js/shop.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .card-img-container {
+            position: relative;
+        }
+        .cart-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            padding: 8px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .shop-card {
+            margin-bottom: 2rem;
+        }
+        /* Ensure profile image is 50x50px */
+        .shop-profile-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div id="header"></div>
+    <div style="padding-top: 10rem !important" class="">
+        <div id="shop-cover" class="text-center mb-4"></div>
+        
+        <!-- Shop Profile Card -->
+        <div id="shop-profile-card" class="container mb-4">
+            <div class="card shop-card shadow-lg">
+                <div class="card-body text-center">
+                    <div id="shop-profileImage" class="mb-3">
+                        <img src="" alt="Shop Profile Image" class="shop-profile-img">
+                    </div>
+                    <h5 id="shop-name" class="card-title"></h5>
+                    <p id="shop-contact" class="card-text"></p>
+                    <p id="shop-location" class="card-text"></p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container">
+            <div id="item-list" class="row"></div>
+        </div>
+
+        <a href="/pages/cart.html"><button class="px-5 m-5 bg-red">Proceed to Payment</button></a>
+    </div>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const params = new URLSearchParams(window.location.search);
+            const shopId = params.get("shopId");
+            const shop = data.find(s => s.shopId === shopId);
+            
+            if (shop) {
+                // Clear previous shop data in localStorage
+                localStorage.removeItem("shopData");
+
+                // Load the cart and shop data from localStorage if available
+                let cart = JSON.parse(localStorage.getItem("cart")) || [];
+                let savedShopData = JSON.parse(localStorage.getItem("shopData"));
+                
+                // Save the new shop data in localStorage
+                localStorage.setItem("shopData", JSON.stringify({
+                    shopId: shop.shopId,
+                    shopName: shop.shopName,
+                    shopContact: shop.contact,
+                    shopLocation: shop.location, // Location added to the saved data
+                    shopCoverImage: shop.coverImage,
+                    shopProfileImage: shop.profileImage,
+                    items: shop.items
+                }));
+
+                // Display shop details
+                document.getElementById("shop-name").innerText = shop.shopName;
+                document.getElementById("shop-contact").innerText = shop.contact;
+                document.getElementById("shop-location").innerText = `Location: ${shop.location}`; // Display location
+                
+                document.getElementById("shop-cover").innerHTML = `<img src="${shop.coverImage}" class="img-fluid" alt="${shop.shopName}">`;
+                document.getElementById("shop-profileImage").innerHTML = `<img src="${shop.profileImage}" class="shop-profile-img" alt="${shop.shopName}">`;
+    
+                let itemList = document.getElementById("item-list");
+    
+                // Function to render items
+                const renderItems = (items) => {
+                    itemList.innerHTML = '';  // Clear existing items
+                    items.forEach(item => {
+                        let itemCard = `
+                            <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
+                                <div class="card shadow-lg" style="border: 0px;">
+                                    <div class="card-img-container">
+                                        <img src="${item.image}" class="card-img-top" alt="${item.name}">
+                                        <div class="cart-icon">
+                                            <i class="fa fa-cart-plus"></i>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <h5 class="card-title">${item.name}</h5>
+                                        <p class="card-text">Price: $${item.price}</p>
+                                        <p class="card-text">Quantity: ${item.quantity}</p>
+                                        <button class="btn btn-outline-primary buy-now-btn rounded-pill px-6 py-1" data-item-id="${item.name}">Add to cart</button>
+                                    </div>
+                                </div>
+                            </div>`;
+                        itemList.innerHTML += itemCard;
+                    });
+    
+                    // Add event listeners for each 'Add to cart' button
+                    document.querySelectorAll('.buy-now-btn').forEach(button => {
+                        button.addEventListener('click', function() {
+                            const itemName = this.dataset.itemId;
+                            const item = shop.items.find(i => i.name === itemName);
+                            if (item) {
+                                cart.push(item); // Add item to cart
+                                localStorage.setItem("cart", JSON.stringify(cart)); // Save the updated cart to localStorage
+                                console.log('Current Cart:', cart); // Log the cart for testing
+                            }
+                        });
+                    });
+                }
+    
+                // Initial render of items
+                renderItems(shop.items);
+    
+                // Search functionality
+                document.getElementById("search-input").addEventListener("input", function(event) {
+                    const query = event.target.value.toLowerCase();
+                    const filteredItems = shop.items.filter(item => item.name.toLowerCase().includes(query));
+                    renderItems(filteredItems);
+                });
+    
+                // Sort functionality
+                document.getElementById("sort-select").addEventListener("change", function(event) {
+                    const sortValue = event.target.value;
+                    let sortedItems = [...shop.items];
+    
+                    switch (sortValue) {
+                        case "price-asc":
+                            sortedItems.sort((a, b) => a.price - b.price);
+                            break;
+                        case "price-desc":
+                            sortedItems.sort((a, b) => b.price - a.price);
+                            break;
+                        case "quantity-asc":
+                            sortedItems.sort((a, b) => a.quantity - b.quantity);
+                            break;
+                        case "quantity-desc":
+                            sortedItems.sort((a, b) => b.quantity - a.quantity);
+                            break;
+                        default:
+                            break;
+                    }
+                    renderItems(sortedItems);
+                });
+            } else {
+                document.getElementById("shop-name").innerText = "Shop Not Found";
+            }
+        });
+    </script>
+    
+    <div id="footer"></div>
+</body>
+</html>
