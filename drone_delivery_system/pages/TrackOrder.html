@@ -66,9 +66,14 @@
         console.log(shopDataJSON?.shopLocation.longitude)
         let userLang = null;
         let userLat = null;
-    
+   
+
+        if (!shopLatitude ) {
+            alert(`Please Select Your Shop!`);
+            window.location.href = "/pages/shopData.html";
+        }
         // Check if user is logged in
-        if (!userId) {
+        if (!userId  ) {
             // If user is not logged in, redirect to the home page
             window.location.href = "/pages/index.html";
         }
@@ -78,106 +83,113 @@
     
         // DOMContentLoaded handler for fetching and displaying user profile
         document.addEventListener("DOMContentLoaded", async () => {
-            try {
-                const response = await fetch(`${baseURL}/api/user/profile/${userId}`);
-                const data = await response.json();
-    
-                if (response.ok) {
-                    const address = `${data.user.address.street}, ${data.user.address.city}, ${data.user.address.state} ${data.user.address.zip}`;
+    try {
+        const response = await fetch(`${baseURL}/api/user/profile/${userId}`);
+        const data = await response.json();
+
+        if (response.ok) {
+            const address = `${data.user.address.street}, ${data.user.address.city}, ${data.user.address.state} ${data.user.address.zip}`;
+            if (!data.user.address.street || !data.user.address.city || !data.user.address.state || !data.user.address.zip) {
+                alert("Please add your complete address from User Profile!");
+                window.location.href = "/pages/userProfile.html";
+            }
+
+            // Geocode the address using Google Geocoding API
+            const geocoder = new google.maps.Geocoder();
+            geocoder.geocode({ address: address }, (results, status) => {
+                if (status === google.maps.GeocoderStatus.OK) {
+                    const userLocation = results[0].geometry.location;
+                    console.log(`User's location coordinates: ${userLocation.lat()}, ${userLocation.lng()}`);
+                    userLat = userLocation.lat();
+                    userLang = userLocation.lng();
                     
-                    // Geocode the address using Google Geocoding API
-                    const geocoder = new google.maps.Geocoder();
-                    geocoder.geocode({ address: address }, (results, status) => {
-                        if (status === google.maps.GeocoderStatus.OK) {
-                            const userLocation = results[0].geometry.location;
-                            console.log(`User's location coordinates: ${userLocation.lat()}, ${userLocation.lng()}`);
-                            userLat = userLocation.lat();  // Correctly assign the latitude
-                            userLang = userLocation.lng(); // Correctly assign the longitude
-                        } else {
-                            console.error(`Geocode was not successful for the following reason: ${status}`);
-                            alert(`Geocode was not successful for the following reason: ${status}`);
-                        }
-                    });
+                    // Proceed to initialize the map only after setting user coordinates
+                    initMap();
                 } else {
-                    alert(`Error: ${data.error}`);
+                    console.error(`Geocode was not successful for the following reason: ${status}`);
+                    alert(`Geocode was not successful for the following reason: ${status}`);
                 }
-            } catch (error) {
-                console.error("Error fetching profile:", error);
-                alert("An error occurred. Please try again.");
-            }
-        });
-    
-        function initMap() {
-            // Coordinates
-            const base = { lat: 40.73061, lng: -73.935242 }; // Base coordinates
-            const shop = { lat: shopLatitude, lng: shopLongitude }; // Shop coordinates
-    
-            // Ensure userLat and userLang are set before initializing the map
-            if (userLat === null || userLang === null) {
-                console.error("User location is not available.");
-                return; // Don't initialize the map if user location is unavailable
-            }
-            
-            const user = { lat: userLat, lng: userLang }; // User coordinates
-    
-            // Map initialization
-            const map = new google.maps.Map(document.getElementById("map"), {
-                zoom: 14,
-                center: base,
             });
-    
-            // Custom icons
-            const icons = {
-                base: {
-                    url: "https://img.icons8.com/external-smashingstocks-circular-smashing-stocks/100/external-Tower-data-and-network-smashingstocks-circular-smashing-stocks.png",
-                    scaledSize: new google.maps.Size(50, 50),
-                },
-                shop: {
-                    url: "https://img.icons8.com/3d-fluency/94/shop.png",
-                    scaledSize: new google.maps.Size(40, 40),
-                },
-                drone: {
-                    url: "https://img.icons8.com/external-flaticons-flat-flat-icons/100/external-drone-robotics-flaticons-flat-flat-icons.png",
-                    scaledSize: new google.maps.Size(60, 60),
-                },
-                user: {
-                    url: "https://img.icons8.com/bubbles/100/user.png",
-                    scaledSize: new google.maps.Size(60, 60),
-                },
-            };
-    
-            // Markers with custom icons
-            new google.maps.Marker({
-                position: base,
-                map,
-                title: "Base",
-                icon: icons.base,
-            });
-    
-            new google.maps.Marker({
-                position: shop,
-                map,
-                title: "Shop",
-                icon: icons.shop,
-            });
-    
-            new google.maps.Marker({
-                position: user,
-                map,
-                title: "User Address",
-                icon: icons.user,
-            });
-    
-            // Path
-            const flightPath = new google.maps.Polyline({
-                path: [base, shop, user],
-                geodesic: true,
-                strokeColor: "#FF0000",
-                strokeOpacity: 1.0,
-                strokeWeight: 2,
-            });
-    
-            flightPath.setMap(map);
+        } else {
+            alert(`Error: ${data.error}`);
+        }
+    } catch (error) {
+        console.error("Error fetching profile:", error);
+        alert("An error occurred. Please try again.");
+    }
+});
+
+function initMap() {
+    // Coordinates
+    const base = { lat: 40.73061, lng: -73.935242 }; // Base coordinates
+    const shop = { lat: shopLatitude, lng: shopLongitude }; // Shop coordinates
+
+    // Ensure userLat and userLang are set before initializing the map
+    if (userLat === null || userLang === null) {
+        console.error("User location is not available.");
+        return; // Don't initialize the map if user location is unavailable
+    }
+
+    const user = { lat: userLat, lng: userLang }; // User coordinates
+
+    // Map initialization
+    const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 14,
+        center: base,
+    });
+
+    // Custom icons
+    const icons = {
+        base: {
+            url: "https://img.icons8.com/external-smashingstocks-circular-smashing-stocks/100/external-Tower-data-and-network-smashingstocks-circular-smashing-stocks.png",
+            scaledSize: new google.maps.Size(50, 50),
+        },
+        shop: {
+            url: "https://img.icons8.com/3d-fluency/94/shop.png",
+            scaledSize: new google.maps.Size(40, 40),
+        },
+        drone: {
+            url: "https://img.icons8.com/external-flaticons-flat-flat-icons/100/external-drone-robotics-flaticons-flat-flat-icons.png",
+            scaledSize: new google.maps.Size(60, 60),
+        },
+        user: {
+            url: "https://img.icons8.com/bubbles/100/user.png",
+            scaledSize: new google.maps.Size(60, 60),
+        },
+    };
+
+    // Markers with custom icons
+    new google.maps.Marker({
+        position: base,
+        map,
+        title: "Base",
+        icon: icons.base,
+    });
+
+    new google.maps.Marker({
+        position: shop,
+        map,
+        title: "Shop",
+        icon: icons.shop,
+    });
+
+    new google.maps.Marker({
+        position: user,
+        map,
+        title: "User Address",
+        icon: icons.user,
+    });
+
+    // Path
+    const flightPath = new google.maps.Polyline({
+        path: [base, shop, user],
+        geodesic: true,
+        strokeColor: "#FF0000",
+        strokeOpacity: 1.0,
+        strokeWeight: 2,
+    });
+
+    flightPath.setMap(map);
     
             // Drone marker
             const droneMarker = new google.maps.Marker({

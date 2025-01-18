@@ -826,8 +826,9 @@ img {width:100%;}
 	}
 	
 
-.user-form{
+.user-form, .cart-form{
 	margin-top: 10rem !important;
+	margin-bottom: 5rem !important;
 }
 
  #shop-cover img {

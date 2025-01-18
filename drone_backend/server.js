@@ -5,17 +5,16 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const addressRoutes = require("./routes/addressRoutes");
 const authRoutes = require("./routes/authRoutes");
-const cors = require("cors");
-
-// CORS configuration
-const corsOptions = {
-    origin: process.env.BASE_URL ,
-    methods: "GET,POST,PUT,DELETE",
-    credentials: true,
-};
 
 const app = express();
 
+// Middleware to disable CORS restrictions
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*"); // Allow all origins
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS"); // Allowed HTTP methods
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization"); // Allowed headers
+  next();
+});
 
 // Middleware
 app.use(bodyParser.json());
@@ -28,9 +27,6 @@ app.use(
     cookie: { secure: process.env.NODE_ENV === "production" }, // Set 'secure: true' if using HTTPS (production)
   })
 );
-
-// Enable CORS with options
-app.use(cors(corsOptions));
 
 // Routes
 app.use("/api/user", addressRoutes);

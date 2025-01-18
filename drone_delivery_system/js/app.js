@@ -21,7 +21,8 @@ function initializeHeaderScripts() {
   const authLinks = document.getElementById("auth-links");
   const userLinks = document.getElementById("user-links");
   const logoutBtn = document.getElementById("logout-btn");
-
+  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+  document.getElementById("cart-count").innerText = cart.length;
   const userId = localStorage.getItem("userId");
 
   if (userId) {

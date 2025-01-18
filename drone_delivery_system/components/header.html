@@ -55,7 +55,7 @@
                       <div><a href="/pages/SignIn.html">Sign In</a></div>
                     </div>
                     <div id="user-links" class=" d-flex gap-3">
-                      <div><a href="/profile.html">User Profile</a></div>
+                      <div><a href="/pages/UserProfile.html">User Profile</a></div>
                       <div><a href="javascript:void(0);" id="logout-btn">Logout</a></div>
                     </div> 
                   </div>
@@ -103,7 +103,7 @@
             </li>
             <li class="nav-item dropdown mr-3">
             
-              <a class="nav-link"  href="#"><i class="bi bi-geo-alt" style="font-size: 1rem; color: black;"></i> Add Address</a> 
+              <a class="nav-link"  href="/pages/UserProfile.html"><i class="bi bi-geo-alt" style="font-size: 1rem; color: black;"></i> Add Address</a> 
              
               </ul>
             </li>
@@ -115,21 +115,7 @@
             <div
               class="wishlist_cart d-flex flex-row align-items-center justify-content-end"
             >
-              <div
-                class="wishlist d-flex flex-row align-items-center justify-content-end"
-              >
-                <div class="wishlist_icon">
-                  <img
-                    src="https://res.cloudinary.com/dxfq3iotg/image/upload/v1560918681/heart.png"
-                    alt=""
-                  />
-                </div>
-                <div class="wishlist_content">
-                  <div class="wishlist_text"><a href="/pages/Cart.html">Wishlist</a></div>
-                  <div class="wishlist_count">10</div>
-                </div>
-              </div>
-
+           
               <!-- Cart -->
               <div class="cart">
                 <div
@@ -160,10 +146,7 @@
 
     <script>
         // Get the cart data from localStorage
-        const cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-// Update the cart count in the navbar
-document.getElementById("cart-count").innerText = cart.length;
+   
     </script>
 
   
